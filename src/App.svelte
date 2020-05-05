@@ -4,6 +4,8 @@
 	import { scaleTime, scaleLinear } from 'd3-scale';
 	import { amazon, apple, facebook, tesla, microsoft } from './data.js';
 
+	import Counter from './components/Counter.svelte'
+
 	const dataSets = {
 		amazon: {
 			data: amazon,
@@ -34,9 +36,11 @@
 	let height = 500;
 
 	let svg;
+	let displayValue; //FOR NOW
 
 	let points = amazon
 	let data = amazon
+	let name = 'amazon'
 	let color = dataSets['amazon'].color
 
 	let coords = null
@@ -92,6 +96,7 @@
 	function setData(key) {
 		points = dataSets[key].data
 		color = dataSets[key].color
+		name = key
 
 		coords = null
 
@@ -108,11 +113,20 @@
 		const value = points.find(el => el.x === formattedDate)
 
 		if(!value) return // Stock exchanges are not working during weekends
+
+		displayValue = value.y
 		coords = { x: xScale(new Date(value.x)), y: yScale(value.y)}
 	}
 </script>
 
+
 <div class="chart" bind:clientWidth={width} bind:clientHeight={height}>
+	<div class="counter">
+		<Counter value={displayValue} />
+	</div>
+	<div class="name">
+		{name}
+	</div>
 	<svg bind:this={svg} on:mousemove="{mousemove}">
 		<!-- y axis -->
 		<g class="axis y-axis" transform="translate(0, {padding.top})">
@@ -145,11 +159,35 @@
 	</svg>
 </div>
 
-{#each Object.keys(dataSets) as name, i}
-	<button on:click={() => setData(name)}> {name} </button>
-{/each}
+<div class="buttons">
+	{#each Object.keys(dataSets) as name, i}
+		<button on:click={() => setData(name)}> {name} </button>
+	{/each}
+</div>
 
 <style>
+	.buttons {
+		margin-top: 30px;
+		text-align: center;
+	}
+
+	.counter {
+		position: absolute;
+		text-align: center;
+		top: 25px;
+		width: 100%;
+		z-index: 1000;
+	}
+
+	.name {
+		position: absolute;
+		bottom: 40px;
+		z-index: 1000;
+		font-size: 30px;
+		text-transform: capitalize;
+		text-align: center;
+		width: 100%;
+	}
 	.chart, h2, p {
 		width: 100%;
 		max-width: 800px;
