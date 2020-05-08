@@ -1,6 +1,8 @@
 # Morphing graph
 
-Playing with d3 and svelte framework.
+![Demo](demo/demo.gif)
+
+Playing with new libraries - d3.js and Svelte. As example I created morphing graph with indicator that shows a stock value of technology companies in Q1 2020.
 
 Install the dependencies...
 
