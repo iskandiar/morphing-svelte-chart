@@ -1,6 +1,9 @@
 import { scaleTime, scaleLinear } from 'd3-scale';
 
-export const calculateChart = (points, {width, height, padding}) => {
+export const calculateChart = (data, {width, height, padding}) => {
+  const points = data.data;
+  const color = data.color;
+
   const maxY = Math.max.apply(null, points.map(p => p.y));
   const minY = Math.min.apply(null, points.map(p => p.y));
 
@@ -28,6 +31,8 @@ export const calculateChart = (points, {width, height, padding}) => {
     minY,
     minX,
     maxX,
+    points,
+    color,
   }
 }
 
@@ -35,4 +40,4 @@ export const calculatePath = points => `M${points.map(p => `${p.x},${p.y}`).join
 
 export const calculateArea = (path, { xScale, maxX, yScale, minY, minX }) => `${path}L${xScale(new Date(maxX))},${yScale(minY * 0.9)}L${xScale(new Date(minX))},${yScale(minY * 0.9)}Z`; 
 
-export const getScaledPoints = (points, { xScale, yScale }) => points.map(p => ({ x: xScale(new Date(p.x)), y: yScale(p.y) }));
+export const getScaledPoints = ({ points, xScale, yScale }) => points.map(p => ({ x: xScale(new Date(p.x)), y: yScale(p.y) }));

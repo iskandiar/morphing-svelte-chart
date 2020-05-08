@@ -4,7 +4,11 @@
 
   export let number;
 
-  let size = spring(number);
+  let size = spring(number, {
+    stiffness: 0.1,
+    damping: 0.9,
+    precision: 0.1
+  });
 
   afterUpdate(() => {
     size.set(number);

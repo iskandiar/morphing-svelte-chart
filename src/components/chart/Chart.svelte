@@ -3,53 +3,47 @@
 
   import { afterUpdate, tick } from 'svelte';
   import { spring } from 'svelte/motion';
-  import { format } from 'date-fns'
+  import { format } from 'date-fns';
   import { scaleTime, scaleLinear } from 'd3-scale';
-  import { calculateChart, calculatePath, calculateArea, getScaledPoints } from './../../utils/chart.js'
+  import { calculateChart, calculatePath, calculateArea, getScaledPoints } from './../../utils/chart.js';
 
-  import Counter from './../Counter.svelte'
+  import Counter from './../Counter.svelte';
 
-  import Area from './Area.svelte'
-  import MouseIndicator from './MouseIndicator.svelte'
-  import XAxis from './XAxis.svelte'
-  import YAxis from './YAxis.svelte'
+  import Area from './Area.svelte';
+  import MouseIndicator from './MouseIndicator.svelte';
+  import XAxis from './XAxis.svelte';
+  import YAxis from './YAxis.svelte';
 
   // INITIALIZE
   const options = {
     width: 800,
     height: 500,
     padding: { top: 20, right: 15, bottom: 20, left: 25 }
-  }
+  };
   
-  let svg, displayValue, displayDate = '', coords = null, mouseLeftPosition = null
+  let svg, displayValue, displayDate = '', coords = null, mouseLeftPosition = null;
 
-  let points = dataSet.data;
-  let color = dataSet.color;
+  let chart = calculateChart(dataSet, options);
 
-  let chart = calculateChart(points, options)
-
-  const initialPoints = points.map((point) => ({ x: chart.xScale(new Date(point.x)), y: chart.yScale(0) }));
+  const initialPoints = chart.points.map((point) => ({ x: chart.xScale(new Date(point.x)), y: chart.yScale(0) }));
   const springPoints = spring(initialPoints, {
     stiffness: 0.1,
     damping: 0.9,
     precision: 0.1
-  })
+  });
 
   let path = calculatePath($springPoints);
   let area = calculateArea(path, chart);
 
   setTimeout(() => {
-    const scaledPoints = getScaledPoints(points, chart);
-    springPoints.set(scaledPoints)
+    const scaledPoints = getScaledPoints(chart);
+    springPoints.set(scaledPoints);
   }, 200)
 
   $: {
-    points = dataSet.data;
-    color = dataSet.color;
+    chart = calculateChart(dataSet, options);
 
-    chart = calculateChart(points, options);
-
-    const scaledPoints = getScaledPoints(points, chart);
+    const scaledPoints = getScaledPoints(chart);
     springPoints.set(scaledPoints);
   }
 
@@ -59,22 +53,22 @@
   }
 
   $: {
-    if(dataSet && mouseLeftPosition) {
-      const date = new Date(chart.xScale.invert(mouseLeftPosition))
-      displayDate = format(date, "MM/dd/yyyy")
-      const value = points.find(el => el.x === displayDate)
+    if(mouseLeftPosition) {
+      const date = new Date(chart.xScale.invert(mouseLeftPosition));
+      displayDate = format(date, "MM/dd/yyyy");
+      const value = chart.points.find(el => el.x === displayDate);
 
       if (value) {
-        displayValue = value.y
-        coords = { x: chart.xScale(new Date(value.x)), y: chart.yScale(value.y) }
+        displayValue = value.y;
+        coords = { x: chart.xScale(new Date(value.x)), y: chart.yScale(value.y) };
       }
     }
   }
 
   function mousemove({ clientX }) {
-    const { left } = svg.getBoundingClientRect()
+    const { left } = svg.getBoundingClientRect();
 
-    mouseLeftPosition = clientX - left
+    mouseLeftPosition = clientX - left;
   }
 </script>
 
@@ -84,7 +78,7 @@
     <Counter value={displayValue} />
     <span>{displayDate}</span>
   </div>
-  <div class="name">
+  <div class="name"  style="color: { chart.color };">
     {dataSet.name}
   </div>
 
@@ -93,11 +87,11 @@
     <XAxis ticks={chart.xTicks} padding={options.padding} height={options.height} scale={chart.xScale}/>
 
     <!-- data -->
-    <Area {path} {area} {color}/>
+    <Area {path} {area} color={chart.color}/>
 
     <!-- controls -->
     {#if coords}
-      <MouseIndicator {coords} height={options.height} padding={options.padding} {color}/>
+      <MouseIndicator {coords} height={options.height} padding={options.padding} color={chart.color}/>
     {/if}
   </svg>
 </div>
@@ -124,6 +118,7 @@
     text-transform: capitalize;
     text-align: center;
     width: 100%;
+    transition: color 0.5s ease;
   }
 
   .chart,
